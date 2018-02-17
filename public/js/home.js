@@ -14,21 +14,40 @@ class HomeScreen {
 
 		dates('option');
     	months1('option');
-		years('option', 2018, 2018);
+		years('option', 1920, 2018)
+		const yearHolders = document.querySelectorAll(".bear-years")
+		for (let elem of yearHolders){
+			elem.value = 2018;
+		}
 		const button = document.querySelector("#addCont")
 		button.addEventListener("click", function(event){
 			const newElem = document.createElement("input");
 			const elem = document.querySelector("#contAdd");
-			console.log("Inserting before")
 			console.log(button)
 			elem.insertBefore(newElem, button)
 		})
-		const goButton = document.querySelector("#goHolder");
+		const goButton = document.querySelector("#goHolder1");
 		if (goButton != null){
 			goButton.addEventListener('click', this.onSubmitForm);
 		}
 
+		const regUser =  document.querySelector("#regUser")
+		regUser.addEventListener("click", this.onSubmitUserData)
+
 		
+	}
+	onSubmitUserData (event){
+		const fName = document.querySelector("input[name = 'fname']").value;
+		const lName = document.querySelector("input[name = 'lname']").value;
+		const day = document.querySelector("#db").value
+		const month = document.querySelector("#mb").value
+		const year = document.querySelector("#yb").value
+		const gender = document.querySelector("input[name ='gender']:checked").value
+		const zip = document.querySelector("input[name ='zip']").value
+		let dat = new Date(year+"-"+month+"-"+day);
+		//TODO: api calls
+		new SnackBar(true, "Saved User!");
+
 	}
 
 
@@ -42,7 +61,6 @@ class HomeScreen {
 
 	async onSubmitForm(event){
 		// event.preventDefault();
-		console.log("inside submission");
 		const day = this.getSelectVal("#dd");
 		const month = this.getSelectVal("#mt");
 		const  year = this.getSelectVal("#yy")
@@ -50,7 +68,10 @@ class HomeScreen {
 		const allContestants = []
 		const allContInputs = document.querySelectorAll("#contAdd input")
 		for (let elem of allContInputs){
+			if(elem.value !== ""){
 				allContestants.push(elem.value)
+			}
+			
 		}
 		const publicKey = document.querySelector("#pKey").value
 		const nameOfElection = document.querySelector("#nameofelection").value
@@ -60,7 +81,9 @@ class HomeScreen {
         date : dat,
         key: publicKey,
         contestants: allContestants
-      }
+      };
+      console.log("The message to the server is ")
+      console.log(message)
       const fetchOptions = {
       method: 'POST',
       headers: {
@@ -78,13 +101,7 @@ class HomeScreen {
       	}
       	document.querySelector("#nameofelection").value = "";
       	document.querySelector("#pKey").value = "";
-
       }
-
-
-
-
-
 
 
 		// //console.log("The time is hour: "+hour+" min: "+min+" ampm: "+ampm);

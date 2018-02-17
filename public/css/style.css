@@ -221,7 +221,7 @@ input{
   background-color: #67BCDB;
   text-align: center;
 }
-.center-items{
+.center-items, #votingPage{
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -257,4 +257,14 @@ input{
 input, button{
    width: 40vw;
 }
+.votep{
+  border: 3px solid black;
 
+}
+.margB{
+  margin-bottom: 20px;
+  margin-top: 10px;
+}
+.select{
+  background-color:  #98e698;
+}

@@ -2,6 +2,9 @@
 		<div id="homepage">
 			<div class="">
 				<h2 class="subtitle" >Presidential Election</h2>
+				<div id="goHolder">
+						<a href="#vote" ><button class="go" >Vote Here</button></a>
+					</div>
 				<div id="pres" class="center-items">
 					<div class="picName">
 						<div >
@@ -32,7 +35,7 @@
 			</div>
 
 			<form class="" >
-				<fieldset>
+				<h2 class="subtitle" >Register Election</h2>
 					<h2>Name of Election</h2>
 					<input type="text" id="nameofelection" placeholder="Presidential">
 					<h2>Contestants</h2>
@@ -50,13 +53,39 @@
 							<select class="bear-months" id="mt"></select>
 							<select class="bear-years" id="yy"></select>
 						</div>
-					<div id="goHolder">
-						<button class="go" >Go</button>
+					<div id="goHolder1">
+						<button class="go" >Create Election</button>
 					</div>
 
-				</fieldset>
-
 			</form>
+
+			<form class="" >
+					<h2 class="subtitle" >Register Voter</h2>
+				<h2>First Name</h2>
+				<input type="text" name="fname">
+				<h2>Last Name</h2>
+				<input type="text" name="lname">
+				<h2>Date of Birth</h2>
+				<div>
+				<select class="bear-dates" id="db"  ></select>
+				<select class="bear-months" id="mb" ></select>
+				<select class="bear-years" id="yb" ></select>
+			</div>
+				<h2>Gender</h2>
+					<label >Female</label>
+					<input type="radio" name="gender" value="Female" checked>
+					<label for="gender">Male</label>
+					<input type="radio" name="gender" value="Male">
+
+
+				<h2>Zip Code</h2>
+				<input type="number" name="zip">
+
+				<div id="regUser">
+					<button class="go" id="regUser">Register User</button>
+				</div>
+			</form>
+
 
 
 		</div>

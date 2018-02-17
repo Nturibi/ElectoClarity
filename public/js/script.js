@@ -1,8 +1,8 @@
-  var swivarApp = angular.module('swivarApp', ['ngRoute']);
+  var electoClarity = angular.module('electoClarity', ['ngRoute']);
   // const sg = new Singleton();
 
 
-  swivarApp.factory('State', function(){
+  electoClarity.factory('State', function(){
   // $http.get( init once per app );
 
   return {
@@ -22,7 +22,7 @@
 });
 
     // configure our routes
-    swivarApp.config(function($routeProvider) {
+    electoClarity.config(function($routeProvider) {
         $routeProvider
 
             // route for the home page
@@ -32,8 +32,8 @@
             })
 
             // route for the about page
-            .when('/result', {
-                templateUrl : 'pages/result.html',
+            .when('/vote', {
+                templateUrl : 'pages/vote.html',
                 controller  : 'resultController'
             })
             .when('/login', {
@@ -57,7 +57,7 @@
         });
 
     // create the controller and inject Angular's $scope
-    swivarApp.controller('mainController', function($scope, State) {
+    electoClarity.controller('mainController', function($scope, State) {
         document.querySelector("#g1").classList.add('inactive');
         // create a message to display in our view
         // console.log("inside the main controller");
@@ -87,22 +87,22 @@
 
     });
 
-    swivarApp.controller('resultController', function($scope, State) {
+    electoClarity.controller('resultController', function($scope, State) {
         document.querySelector("#g1").classList.add('inactive');
         $scope.$on('$viewContentLoaded', function(){
             console.log(" results screen: ");
-            console.log(State.formData);
-               new ResultsScreen(State.formData);
-                document.addEventListener('result-cmp', function(event){ 
-                State.formData = event.detail;
+            new VotePage()
+            //    new ResultsScreen(State.formData);
+            //     document.addEventListener('result-cmp', function(event){ 
+            //     State.formData = event.detail;
                 
-            });
+            // });
         }
         );
 
     });
 
-    swivarApp.controller('loginController', function($scope, State) {
+    electoClarity.controller('loginController', function($scope, State) {
       document.querySelector("#g1").classList.remove('inactive');
       $scope.$on('$viewContentLoaded', function(){
         new UserLogin(State.formData);
@@ -114,7 +114,7 @@
 
   });
 
-    swivarApp.controller('signupController', function($scope, State) {
+    electoClarity.controller('signupController', function($scope, State) {
        document.querySelector("#g1").classList.add('inactive');
        $scope.$on('$viewContentLoaded', function(){
             console.log("INside the sign up page, form data is: ");
@@ -131,7 +131,7 @@
         );  
    });
 
-    swivarApp.controller('tripController', function($scope, State) {
+    electoClarity.controller('tripController', function($scope, State) {
         document.querySelector("#g1").classList.add('inactive');
         $scope.$on('$viewContentLoaded', function(){
         // console.log("inside trip page!!!");
@@ -152,7 +152,7 @@
 
     });
 
-    swivarApp.controller('successController', function($scope, State) {
+    electoClarity.controller('successController', function($scope, State) {
         // document.querySelector("")
         document.querySelector("#g1").classList.add('inactive');
         $scope.$on('$viewContentLoaded', function(){
@@ -167,3 +167,4 @@
         // console.log("on sign in!");
         HomeScreen.googleSignInPress(googleUser);
     }
+  

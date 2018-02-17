@@ -37,6 +37,7 @@ async function main() {
 	profilesCollection = db.collection("profiles");
 	// miscCollection = db.collection("misc");
 	electionCollection = db.collection("election");
+	resultsCollection = db.collection("results");
 
 	ALERT_EMAIL = process.env.ALERT_EMAIL;
 	ALERT_PASS = process.env.ALERT_PASS;
@@ -48,9 +49,29 @@ main();
 async function onPostElection(req, res){
 	const message = req.body;
 	const resp = await electionCollection.insertOne(message)
+	const arr = message.contestants;
+	console.log("about to log")
+	for (let item of arr){
+		const doc =  {
+			nameOfElection: message.nameOfElection,
+			candidate: item,
+			votes: 0
+		};
+		await resultsCollection.insertOne(doc);
+	}
 	res.json({isSaved: true});
 }
 app.post('/postelection', jsonParser, onPostElection)
+
+async function onGetContestants(req, res){
+	console.log("Gettin contestants")
+	const nameOfElection = req.query.nameOfElection;
+	const response = await electionCollection.findOne({nameOfElection: nameOfElection});
+	res.json({cont : response});
+}
+
+
+app.get('/getcontestants', jsonParser, onGetContestants);
 
 async function onGetIfUser(req, res){
 	const queryParams = req.query;
