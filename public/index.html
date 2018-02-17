@@ -1,0 +1,73 @@
+    <!DOCTYPE html>
+   <html  ng-app="swivarApp" >
+    <head>
+      <!-- SCROLLS -->
+      <!-- load bootstrap and fontawesome via CDN -->
+      <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" />
+      <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.0/css/font-awesome.css" />
+
+      <!-- SPELLS -->
+      <!-- load angular and angular route via CDN -->
+      <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.min.js"></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular-route.js"></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="google-signin-client_id" content="624800274337-732fuha3p5lumoperjgggj14oq6i50d8.apps.googleusercontent.com">
+    <script src= "https://apis.google.com/js/platform.js" async defer></script>
+    <script src="js/calendar.js" type="text/javascript" defer></script>
+    <script  src= "js/loginUtils.js" type="text/javascript" defer ></script>
+    <script src="js/pickTime.js" type="text/javascript" defer></script>
+    <script src="js/snackbar.js" type="text/javascript" defer></script>
+    <script src="js/success.js" type="text/javascript" defer></script>
+    <script src="js/tripPage.js" type="text/javascript" defer> </script>
+     <script  src="js/userSignUp.js" type="text/javascript" defer></script>
+    <script  src="js/userLogin.js" type="text/javascript" defer></script>
+    <script src="js/results.js" type="text/javascript" defer></script>
+    <script src="js/home.js" type="text/javascript" defer></script>
+    <script type="text/javascript" src="js/angular.min.js"></script>
+    <script src="js/script.js" type="text/javascript" defer></script>
+
+    <title>ElectoClarity | Transparent Democratic Secure</title>
+
+
+    <link href="css/style.css" type="text/css" rel="stylesheet" />
+
+
+    </head>
+    <body ng-controller="mainController">
+
+        <!-- HEADER AND NAVBAR -->
+        <header>
+            <nav class="navbar navbar-default">
+            <div class="container">
+                <div class="navbar-header">
+                   <h1> ElectroClarity</h1>
+                </div>
+                <h6 class="ctrtext"> <em>Transparent Democratic Secure</em></h6>
+
+
+                <!-- <ul class="nav navbar-nav navbar-right">
+                    <li><a href="#"><i class="fa fa-home"></i> Home</a></li>
+                    <li><a href="#about"><i class="fa fa-shield"></i> About</a></li>
+                    <li><a href="#contact"><i class="fa fa-comment"></i> Contact</a></li>
+                </ul> -->
+            </div>
+            </nav>
+        </header>
+
+        <!-- MAIN CONTENT AND INJECTED VIEWS -->
+        <div id="main">
+          <!-- <h1 class="ctrtext">Swivar</h1> -->
+                <!-- <div class="g-signin2" data-onsuccess="onSignIn"></div> -->
+      
+      <div ng-view></div>
+            <div class="g-signin2 inactive" id= "g1"data-onsuccess="onSignIn"></div>
+         
+            <!-- angular templating -->
+            <!-- this is where content will be injected -->
+
+        </div>
+        <div id="snackbar"></div>
+
+    </body>
+    </html>

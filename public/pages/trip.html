@@ -1,0 +1,126 @@
+
+
+<div class="pg" id="tripPage">
+	<div class="ctr">
+		<h2 id="trpHdr">Create Ride Group</h2>
+		<p>Enter your itinerary.</p>
+		<fieldset>
+			<form id="form2">
+				<div class="lay-vert">
+					<div class="lay-horiz">
+						<div class="cntr">Name: <input type="text"  id="crName" readonly>
+							<br/></div>
+							<div class="cntr">
+								Email: <input type="text" id="crEmail" value="" readonly><br/></div>
+								<div class="cntr">
+									Number of Peeps: <input type="number" id="crNum" required min="0" ><br/>
+								</div>
+							</div>
+							<div class="lay-horiz">
+								<div id="fromDiv2">
+									<h2>From:</h2>
+									<select id="from-selector2" class="loc">
+										<option>San Francisco International Airport (SFO)</option>
+										<option>San Jose International Airport (SJC)</option>
+										<option>Stanford University</option>
+									</select>
+								</div>
+
+								<div id="toDiv2">
+									<h2> To:</h2>
+									<select id="to-selector2" class="loc">
+										<option>Stanford University</option>
+										<option>San Francisco International Airport (SFO) </option>
+										<option>San Jose International Airport (SJC) </option>
+									</select>
+								</div>
+							</div>
+						</div>
+						<div class="container">
+							<h2>
+								Time:
+							</h2>
+							<div class="lay-horiz">
+								<input type="number" id="hh2" class="fr" max="12" min="1">
+								<!-- <select class="h-time" id="hh3"></select> -->
+								<input type="number" id="mm2" class="fr" min="0" max="55" >
+								<!-- <select class="m-time" id="mm3"></select> -->
+								<input type="text" id="ampm2" class="fr">
+								<!-- <select class="p-time" id="ampm3"></select> -->
+							</div>
+							<h2>Date:</h2>
+							<div class="lay-horiz">
+								<input type="number" id="dd2" class="fr" max="31" min="1" >
+								<input type="text" id="mt2" class="fr" >
+								<input type="number" id="yy2" class="fr" max="2018", min="2017">
+								
+							</div>
+						</div>
+						<div id="goHolder1" class="goHolder">
+							<a href="#success">
+							<button class= "go">Done </button></a>
+						</div>
+					</form>
+				</fieldset>
+			</div>
+		</div>
+
+		<div id="exstTrp">
+			<div class="ctr">
+				<h2> Ride Group</h2>
+				<p>You will be riding with: </p>
+				<div id="riders"></div>
+				<div class="lay-horiz">
+					<div id="fromDiv3">
+						<h2>From:</h2>
+						<select id="from-selector3" class="loc">
+							<option>San Francisco International Airport (SFO)</option>
+							<option>San Jose International Airport (SJC)</option>
+							<option>Stanford University</option>
+						</select>
+					</div>
+
+					<div id="toDiv3">
+						<h2> To:</h2>
+						<select id="to-selector3" class="loc">
+							<option>Stanford University</option>
+							<option>San Francisco International Airport (SFO) </option>
+							<option>San Jose International Airport (SJC) </option>
+						</select>
+					</div>
+				</div>
+				
+
+				<div class="container">
+					<h2>
+						Time:
+					</h2>
+					<div class="lay-horiz">
+						<input type="number" id="hh3" class="fr" readonly>
+						<!-- <select class="h-time" id="hh3"></select> -->
+						<input type="number" id="mm3" class="fr" readonly >
+						<!-- <select class="m-time" id="mm3"></select> -->
+						<input type="text" id="ampm3" class="fr" readonly>
+						<!-- <select class="p-time" id="ampm3"></select> -->
+					</div>
+					<h2>Date:</h2>
+					<div class="lay-horiz">
+						<input type="number" id="dd3" class="fr" readonly>
+						<input type="text" id="mt3" class="fr" readonly>
+						<input type="number" id="yy3" class="fr" readonly>
+						
+					</div>
+				</div>
+				<div id="goHolder3" class="goHolder">
+					<a href="#success"><button class= "go">Join </button></a>
+				</div>
+			</div>
+		</div> 
+
+
+
+
+
+
+
+
