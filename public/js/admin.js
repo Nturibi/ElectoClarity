@@ -1,5 +1,18 @@
 ////console.log("starting 
 
+function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+function utoa(str) {
+    return window.btoa(unescape(encodeURIComponent(str)));
+}
+
+function atou(str) {
+    return decodeURIComponent(escape(window.atob(str)));
+}
 class AdminScreen {
 	constructor(){
 		console.log("Admin screen starting");
@@ -73,7 +86,57 @@ class AdminScreen {
   		document.querySelector("#adminP").classList.remove("inactive");
   		regUsr.addEventListener("click", this.onEnterAdminCard);
 
+		const endpoint = window.constants.hardwareAPI + window.constants.cardAPI;
+		const extrendpoint = endpoint + "/extractKeys";
+        const fetchOptions = {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({"card": card})
+        };
+		var identity;
+		var identityString;
+		var pin64 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; // Default pin is 32 bytes of 0s
+        const card = this.selectedCard; // Implement this somewhere.
+		fetch(endpoint + "/erasecard", fetchOptions).then(result => {
+			return fetch(endpoint+"/extractkeys", fetchOptions);
+		}).then(result => {
+			return result.json();
+		}).then(keys => {
+			// keys: pubkey and adminPubKey
+			let pubkey = keys.pubkey;
+			let adminPubKey = keys.adminPubKey;
 
+			identity = {
+				"name": fName,
+				"name_alt": lName,
+				"identifier": uuidv4(),
+				"useKey": pubkey,
+				"administrativeKey": adminPubKey,
+				"faceprint": "none; fill in later",
+				"sex": gender, // Will handle non-conforming cases if time permits,
+				"zip": zip,
+				"dd-mm-yy": `${day}-${month}-${year}`
+            };
+			identityString = JSON.stringify(identity);
+			data = utoa(identityString);
+
+			let reqBody = {
+				"data": data,
+				"pin": pin64,
+				"adminPin": pin64,
+				"card": card
+			};
+			fetchOptions.body = JSON.stringify(reqBody);
+			return fetch(endpoint + "/sign", fetchOptions);
+		}).then(signaturesObj => {
+			return signaturesObj.json();
+		}).then(signatures => {
+			this.signatures = signatures;
+			this.identity = identity;
+		});
 
 		//TODO: api callss
 		// 
@@ -86,12 +149,68 @@ class AdminScreen {
 		regUsr.removeEventListener("click", this.onEnterAdminCard);
 		regUsr.addEventListener("click", this.lastStep);
 		regUsr.textContent = "Finish Registation";
+
+		// Assuming the admin card has been substituted in.
+		let fetchOptions = {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+			body: JSON.stringify({
+				"identity": this.identity,
+				"userSignature": this.signatures.signature,
+				"adminSignature": this.signatures.adminSignature,
+				"pin": window.constants.adminCardPIN, // In reality, this should be entered by the administrator
+				"card": this.selectedCard;
+			});
+		};
+		fetch(endpoint+"/registervoter", fetchOptions).then(res => {
+			return res.json();
+		}).then(signedStuff => {
+			this.identityString = signedStuff.identityString;
+			this.identitySignature = signedStuff.signature;
+		}).catch(e => {
+			console.log(e);
+		});
 	}
 	lastStep(){
 		//PETER
-		console.log("Client card entered")
-		new SnackBar(true, "Saved User!");
-
+		console.log("Client card entered");
+		var resetPINObject = {
+            "card": this.selectedCard,
+            "adminPin": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+			"pin": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+			"newPin": this.newPrimaryPIN,
+			"which": 0
+		};
+		let fetchOptions = {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+			body: JSON.stringify({
+				"signature": this.identitySignature,
+				"identity": JSON.parse(this.identityString),
+				"card": this.selectedCard,
+				"pin": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" // Still default PIN
+			});
+		};
+		fetch(endpoint+"/populatecard", fetchOptions).then(x => {
+			fetchOptions.body = JSON.stringify(resetPINObject);
+			return fetch(endpoint+"/resetpin", fetchOptions);
+		}).then(s => {
+			resetPINObject.which = 1;
+			resetPINObject.pin = this.newPrimaryPIN;
+			resetPINObject.newPin = this.newAdminPIN;
+			fetchOptions.body = JSON.stringify(resetPINObject);
+			return fetch(endpoint+"/resetpin", fetchOptions);
+		}).then(s => {
+            new SnackBar(true, "Saved User!");
+		}).catch(exc => {
+			console.log("error occurred populating card: "+exc);
+		});
 	}
 
 

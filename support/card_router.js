@@ -53,7 +53,14 @@ const ec = new EC({
     hash: hash.sha1
 });
 
-function executeWriteToCard(card, data, slot) {
+function executeWriteToCard(card, data, slot, pin) {
+    let cmd_unlock = {
+        "cla": 0x24,
+        "ins": 0x02,
+        "p1": 0x11,
+        "p2": 0x11,
+        "data": pin
+    };
     let cmd = {
         'cla': 0x24, // For the card
         'ins': 0x01, // DATA_WRITE
@@ -61,7 +68,9 @@ function executeWriteToCard(card, data, slot) {
         'p2': 0x00, // Write offset
         'data': data
     };
-    return sendAPDU(card, cmd);
+    return sendAPDU(card, cmd_unlock).then(a => {
+        return sendAPDU(card, cmd);
+    });
 }
 
 function unlockCard(card, pin) {
@@ -102,11 +111,24 @@ function fetchIdentity(card, pin) {
     });
 }
 
+function resetPIN(card, adminPin, primaryPin, newPin, whichpin = 0) {
+    return unlockCard(card, primaryPin).then(res => {
+        let cmd = {
+            "cla": 0x24,
+            "ins": 0x04, // CHANGE_PIN
+            "p1": whichpin, // which pin to change
+            "p2": 0x11, // Arbitrary
+            "data": Buffer.concat([adminPin, newPin]), // Admin pin and then replacement pin
+        };
+        return sendAPDU(card, cmd);
+    });
+}
+
 function verifySignature(allegedKey, allegedData, allegedSignature) {
     let pub = {
             x: allegedKey.point.x,
             y: allegedkey.point.y,
-        };
+    };
 
     let thehash = hash.sha1().update(allegedData).digest('hex');
     return ec.verify(thehash, allegedSignature.toString('hex'), pub);
@@ -277,7 +299,7 @@ devices.onActivated().then(event => {
     device.on('card-removed', function(event) {
         let card = event.card;
         console.log(`Card '${card.getAtr()}' removed.`);
-        cardsInserted.delete(cardsInsertedInverse[card]);
+        cardsInserted.delete(cardsInsertedInverse.get(card));
         cardsInsertedInverse.delete(card);
     });
 }).catch(e => {
@@ -301,7 +323,7 @@ router.get('/inserted', function (req, res) {
     cardsInserted.forEach((value, key, mapp) => {
         resp.cards[key] = value.toString();
     });
-    res.end(JSON.stringify(resp));
+    res.json(resp);
 });
 // Call this endpoint to get & "verify" the candidate list before voting.
 router.get('/requestballot', function(req, res) {
@@ -311,7 +333,7 @@ router.get('/requestballot', function(req, res) {
         if (!theballot.authorityKey || !theballot.ballot || !theballot.authoritySignature) {
             res.status(400);
             ret.error = "Missing information in returned ballot.";
-            res.end(JSON.stringify(ret));
+            res.json(ret);
             return;
         }
         let authorityKey = Buffer.from(theballot.authorityKey, 'utf8');
@@ -329,17 +351,17 @@ router.get('/requestballot', function(req, res) {
 
         ret.ballot = theballot.ballot;
         res.status(200);
-        res.end(JSON.stringify(ret));
+        res.json(ret);
     }).catch(e => {
         res.status(400);
         ret.error = e.toString();
-        res.end(JSON.stringify(ret));
+        res.json(ret);
     });
 
 });
 
 // Call this to begin the process of registering a voter.
-// Save the public key and put it into the identity JSON as userKey and userAdminKey
+// Save the public key and put it into the identity JSON as useKey and administrativeKey
 router.post('/extractkeys', function(req, res) {
     let card = req.body['card'];
     card = cardsInserted.get(card);
@@ -348,7 +370,7 @@ router.post('/extractkeys', function(req, res) {
     if (!card) {
         res.status(400);
         ret.error = `Card ID ${req.body['card']} doesn't exist.`;
-        res.end(JSON.stringify(ret));
+        res.json(ret);
         return;
     }
     var usualPublicKey;
@@ -362,11 +384,11 @@ router.post('/extractkeys', function(req, res) {
 
         let theAdminPubKey = savePublicKey(adminPkey);
         ret.adminPubKey = theAdminPubKey.toString('base64');
-        res.end(JSON.stringify(ret));
+        res.json(ret);
     }).catch(e => {
         res.status(400);
         ret.error = e.toString();
-        res.end(JSON.stringify(ret));
+        res.json(ret);
         console.log(e);
     });
 
@@ -379,7 +401,7 @@ router.post('/registervoter', function(req, res) {
     let identityKey = identityInformation["useKey"];
 
     let identityAdminSignature = req.body["userAdminSignature"];
-    let identityAdminKey = req.body["userAdminKey"];
+    let identityAdminKey = identityInformation["administrativeKey"];
 
     let identityString = JSON.stringify(identityInformation);
     let identityBuffer = Buffer.from(identityString, 'utf8');
@@ -396,7 +418,7 @@ router.post('/registervoter', function(req, res) {
     if (!pin) {
         res.status(400);
         ret.error = "No PIN provided.";
-        res.end(JSON.stringify(ret));
+        res.json(ret);
         return;
     }
     pin = Buffer.from(pin, 'base64');
@@ -409,29 +431,29 @@ router.post('/registervoter', function(req, res) {
         // Invalid signatures! This may be a fake request, or I might've made a bug.
         res.status(400);
         ret.error = "Invalid client signature.";
-        res.end(JSON.stringify(ret));
+        res.json(ret);
     } else {
         if (cardsInserted.size < 1) {
             res.status(400);
             ret.error = "No smart card detected.";
-            res.end(JSON.stringify(ret));
+            res.json(ret);
             return;
         } else if (!cardsInserted.get(card)) {
             res.status(400);
             ret.error = `Card with ID ${card} not found.`;
-            res.end(JSON.stringify(ret));
+            res.json(ret);
             return;
         }
         obtainSignature(cardsInserted.get(card), identityString, pin).then(function(signature) {
             ret.signature = signature.toString('base64');
             ret.identityString = identityString;
             res.status(200);
-            res.end(JSON.stringify(ret));
+            res.json(ret);
             return;
         }).catch(function(err) {
             ret.error = err;
             res.status(400);
-            res.end(JSON.stringify(res));
+            res.json(ret);
             return;
         });
     }
@@ -441,34 +463,44 @@ router.post('/populatecard', function(req, res) {
     let signature = req.body['signature'];
     let identity = req.body['identity'];
     let card = req.body['card'];
+    let pin = req.body['pin'];
     let ret = {};
     if (!signature || !identity || !card) {
         ret.error = "Missing parameter (signature, identity, or card)";
         res.status(400);
-        res.end(JSON.stringify(ret));
+        res.json(ret);
         return;
     }
 
     if (!cardsInserted.get(card)) {
         ret.error = `Card ${card} is not inserted`;
         res.status(400);
-        res.end(JSON.stringify(ret));
+        res.json(ret);
         return;
     }
+
+    if (!pin) {
+        ret.error = 'No pin provided.';
+        res.status(400);
+        res.json(ret);
+        return;
+    }
+
+    pin = Buffer.from(pin, 'base64');
 
     identity = Buffer.from(JSON.stringify(identity), 'utf8');
     signature = Buffer.from(signature, 'base64');
 
-    executeWriteToCard(card, identity, 0).then((resp) => {
-        return executeWriteToCard(card, signature, 1);
+    executeWriteToCard(card, identity, 0, pin).then((resp) => {
+        return executeWriteToCard(card, signature, 1, pin);
     }).then((resp) => {
         res.status(200);
         ret.message = "Identity and certificate successfully written.";
-        res.end(JSON.stringify(ret));
+        res.json(ret);
     }).catch((e) => {
         res.status(500);
         ret.error = e.toString();
-        res.end(JSON.stringify(ret));
+        res.json(ret);
     });
 });
 
@@ -487,19 +519,19 @@ router.post('/submitballot', function(req, res) {
     if (!card) {
         res.status(400);
         ret.error = 'Missing card.';
-        res.end(JSON.stringify(ret));
+        res.json(ret);
         return;
     }
     if (!cardsInserted.get(card)) {
         res.status(400);
         ret.error = `Card ${card} not inserted.`;
-        res.end(JSON.stringify(ret));
+        res.json(ret);
         return;
     }
     if (!pin) {
         res.status(400);
         ret.error = 'No PIN provided.';
-        res.end(JSON.stringify(ret));
+        res.json(ret);
         return;
     }
     pin = Buffer.from(pin, 'base64');
@@ -538,11 +570,11 @@ router.post('/submitballot', function(req, res) {
     }).then(receipt => {
         ret.receipt = receipt;
         res.status(200);
-        res.end(JSON.stringify(ret));
+        res.json(ret);
     }).catch(e => {
         ret.error = "Error getting signature/submitting vote: "+e;
         res.status(400);
-        res.end(JSON.stringify(ret));
+        res.json(ret);
     });
 
 
@@ -555,28 +587,191 @@ router.post('/sendapdu', function (req, res) {
         if (!res.body['data']) {
             ret.error = 'Missing required attribute data.';
             res.status(400);
-            res.end(JSON.stringify(ret));
+            res.json(ret);
         }
         if (card) {
             sendAPDU(card, res.body['data']).then(function(responseApdu) {
                 res.status(200);
                 ret['data'] = responseApdu.buffer.toString('base64');
-                res.end(JSON.stringify(ret));
+                res.json(ret);
             }).catch(e => {
                 res.status(400);
                 ret['error'] = `${e}`;
-                res.end(JSON.stringify(ret));
+                res.json(ret);
             });
         } else {
             res.status(400);
             ret.error = 'Card not inserted.';
-            res.end(JSON.stringify(ret));
+            res.json(ret);
         }
     } else {
         res.status(400);
         ret.error = 'Missing card.';
-        res.end(JSON.stringify(ret));
+        res.json(ret);
     }
+});
+
+router.post('/sign', function(req, res) {
+   let data = req.body['data'];
+   let pin = req.body['pin'];
+   let card = req.body['card'];
+   let adminPin = req.body['adminPin'];
+   var ret = {};
+   if (!pin) {
+       ret.error = "No PIN provided.";
+       res.status(400);
+       res.json(ret);
+       return;
+   }
+
+   pin = Buffer.from(pin, 'base64');
+
+   if (!data) {
+       ret.error = "No data provided.";
+       res.status(400);
+       res.json(ret);
+       return;
+   }
+
+   data = Buffer.from(data, 'base64');
+
+   if (!card) {
+       ret.error = 'Card not provided.';
+       res.status(400);
+       res.json(ret);
+       return;
+   }
+
+   if (!cardsInserted.get(card)) {
+       ret.error = `Card ${card} is not plugged in.`;
+       res.status(400);
+       res.json(ret);
+       return;
+   }
+
+   if (adminPin) {
+       adminPin = Buffer.from(adminPin, 'base64');
+   }
+
+
+   card = cardsInserted.get(card);
+   unlockCard(card, pin).then(resp => {
+       return obtainSignature(card, data, pin);
+   }).then(signature => {
+       ret.signature = signature.toString('base64');
+       if (adminPin) {
+           return obtainSignature(card, data, pin, adminPin, 1);
+       } else {
+           return false;
+       }
+   }).then(signature2 => {
+       if (signature2) {
+           ret.adminSignature = signature2.toString('base64');
+       }
+       res.status(200);
+       res.json(ret);
+   });
+});
+
+router.post("/erasecard", function(req, res) {
+    let erase_cmd = {
+        "cla": 0x24,
+        "ins": 0x0A, // ERASE
+        "p1": 0x11,
+        "p2": 0x11,
+    };
+    let card = req.body['card'];
+    let ret = {};
+    if (!card) {
+        ret.error = 'No card provided.';
+        res.status(400);
+        res.json(ret);
+        return;
+    }
+    
+    if (!cardsInserted.get(card)) {
+        ret.error = `Card ${card} not present.`;
+        res.status(400);
+        res.json(ret);
+        return;
+    }
+    card = cardsInserted.get(card);
+    sendAPDU(card, erase_cmd).then(a => {
+       ret.message = "Card erased. PINs are all 0.";
+       res.status(200);
+       res.json(ret);
+       return;
+    }).catch(e => {
+        ret.error = e.toString();
+        res.status(400);
+        res.json(ret);
+        return;
+    });
+});
+
+router.post("/resetpin", function(req, res) {
+    let card = req.body['card'];
+    let adminPin = req.body['adminPin'];
+    let primaryPin = req.body['pin'];
+    let newPin = req.body['newPin'];
+    let whichPin = req.body('whichPin');
+
+    let ret = {};
+    if (!card) {
+        ret.error = 'No card provided.';
+        res.status(400);
+        res.json(ret);
+        return;
+    }
+
+    if (!adminPin) {
+        ret.error = 'No admin PIN provided.';
+        res.status(400);
+        res.json(ret);
+        return;
+    }
+
+    if (!primaryPin) {
+        ret.error = 'No primary PIN provided.';
+        res.status(400);
+        res.json(ret);
+        return;
+    }
+
+    if (!newPin) {
+        ret.error = 'No new PIN provided.';
+        res.status(400);
+        res.json(ret);
+        return;
+    }
+
+    if (!whichPin) {
+        ret.error = 'Which PIN should be replaced was not given.';
+        res.status(400);
+        res.json(ret);
+        return;
+    }
+
+    if (!cardsInserted.get(card)) {
+        ret.error = `Card ${card} is not inserted.`;
+        res.status(400);
+        res.json(ret);
+        return;
+    }
+
+    adminPin = Buffer.from(adminPin, 'base64');
+    newPin = Buffer.from(newPin, 'base64');
+    primaryPin = Buffer.from(primaryPin, 'base64');
+    resetPIN(card, adminPin, primaryPin, newPin, whichPin).then(throwaway => {
+        ret.message = "Pin successfully changed.";
+        res.status(200);
+        res.json(ret);
+    }).catch(e => {
+        ret.error = e.toString();
+        res.status(400);
+        res.json(ret);
+    });
+
 });
 
 module.exports = router;
