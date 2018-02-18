@@ -100,11 +100,11 @@ function fetchIdentity(card, pin) {
             "p2": 0x11, // arbitrary
             "le": 2048, // Large identity
         };
-        return Promise.all([sendAPDU(card, cmd).then(data = > {
+        return Promise.all([sendAPDU(card, cmd).then(data => {
             let b = data.buffer;
             return b.slice(0, b.length - 2);
         }),
-        sendAPDU(card, cm2).then(data = > {
+        sendAPDU(card, cm2).then(data => {
             let b = data.buffer;
             return b.slice(0, b.length - 2);
         })]);

@@ -18,7 +18,7 @@ app.use(express.static('public'));
 let db = null;
 
 let tripCollection = null;
-let  profilesCollection = null;
+let profilesCollection = null;
 // let miscCollection = null;
 
 // let S3_BUCKET;
@@ -47,7 +47,9 @@ async function main() {
 	await app.listen(port);
 	console.log(`Server listening on port ${port}!`);
 }
+
 main();
+
 async function onPostElection(req, res){
 	const message = req.body;
 	message.id = shortId.generate();
