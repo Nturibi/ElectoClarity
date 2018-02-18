@@ -224,8 +224,8 @@ class AdminScreen {
 				"userSignature": this.signatures.signature,
 				"adminSignature": this.signatures.adminSignature,
 				"pin": window.constants.adminCardPIN, // In reality, this should be entered by the administrator
-				"card": this.selectedCard;
-			});
+				"card": this.selectedCard,
+			}),
 		};
 		fetch(endpoint+"/registervoter", fetchOptions).then(res => {
 			return res.json();
@@ -257,7 +257,7 @@ class AdminScreen {
 				"identity": JSON.parse(this.identityString),
 				"card": this.selectedCard,
 				"pin": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" // Still default PIN
-			});
+			})
 		};
 		fetch(endpoint+"/populatecard", fetchOptions).then(x => {
 			fetchOptions.body = JSON.stringify(resetPINObject);
