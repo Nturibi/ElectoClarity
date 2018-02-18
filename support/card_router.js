@@ -12,6 +12,7 @@ const BigInteger = require('bigi');
 const hash = require('hash.js');
 const elliptic = require('elliptic');
 var constants = require('./constants');
+const crypto = require('crypto');
 var Promise = require('any-promise');
 var rp = require('request-promise-any');
 const CommandApdu = smartcard.CommandApdu;
@@ -59,14 +60,14 @@ function executeWriteToCard(card, data, slot, pin) {
         "ins": 0x02,
         "p1": 0x11,
         "p2": 0x11,
-        "data": pin
+        "data": [...pin]
     };
     let cmd = {
         'cla': 0x24, // For the card
         'ins': 0x01, // DATA_WRITE
         'p1': slot, // choose slot
         'p2': 0x00, // Write offset
-        'data': data
+        'data': [...data]
     };
     return sendAPDU(card, cmd_unlock).then(a => {
         return sendAPDU(card, cmd);
@@ -79,6 +80,7 @@ function unlockCard(card, pin) {
         "ins": 0x02, // UNLOCK
         "p1": 0x11, // Arbitrary
         "p2": 0x11, // Arbitrary
+        "data": [...pin],
     };
 
     return sendAPDU(card, unlock);
@@ -118,18 +120,21 @@ function resetPIN(card, adminPin, primaryPin, newPin, whichpin = 0) {
             "ins": 0x04, // CHANGE_PIN
             "p1": whichpin, // which pin to change
             "p2": 0x11, // Arbitrary
-            "data": Buffer.concat([adminPin, newPin]), // Admin pin and then replacement pin
+            "data": [...Buffer.concat([adminPin, newPin])], // Admin pin and then replacement pin
         };
         return sendAPDU(card, cmd);
     });
 }
 
 function verifySignature(allegedKey, allegedData, allegedSignature) {
+    console.log(allegedKey);
     let pub = {
             x: allegedKey.point.x,
             y: allegedkey.point.y,
     };
-
+    const hashAlgo = crypto.createHash('sha256');
+    hashAlgo.update(allegedData);
+    allegedData = hashAlgo.digest();
     let thehash = hash.sha1().update(allegedData).digest('hex');
     return ec.verify(thehash, allegedSignature.toString('hex'), pub);
 }
@@ -243,18 +248,18 @@ function obtainSignature(card, data, pin, adminPin = Buffer.alloc(0), kn = 0) {
         "ins": 0x02, // UNLOCK_CARD
         "p1": 0x11,
         "p2": 0x11,
-        "data": pin,
+        "data": [...pin],
     };
     let cmd_sign = {
         "cla": 0x24,
         "ins": 0x07, // SIGN_DATA
         "p1": kn, // select key
         "p2": 0x11, // doesn't matter
-        "le": 255, // Expected length
-        "data": data
+        "le": 2048, // Expected length
+        "data": [...data]
     };
     if (kn != 0) {
-        cmd_sign.data = Buffer.concat([adminPin, data]);
+        cmd_sign.data = [...Buffer.concat([adminPin, data])];
     }
     return sendAPDU(card, cmd_unlock).then(resp => {
         return sendAPDU(card, cmd_sign);
@@ -402,11 +407,18 @@ router.post('/extractkeys', function(req, res) {
 
 // Given identity, generate & sign X.509 certificate + extra info.
 router.post('/registervoter', function(req, res) {
+    let ret = {};
     let identityInformation = req.body["identity"];
+    if (!identityInformation) {
+        ret.error = "Missing identity information";
+        res.status(400);
+        res.json(ret);
+        return;
+    }
     let identitySignature = req.body["userSignature"];
     let identityKey = identityInformation["useKey"];
 
-    let identityAdminSignature = req.body["userAdminSignature"];
+    let identityAdminSignature = req.body["adminSignature"];
     let identityAdminKey = identityInformation["administrativeKey"];
 
     let identityString = JSON.stringify(identityInformation);
@@ -418,7 +430,7 @@ router.post('/registervoter', function(req, res) {
     let signatureBuffer = Buffer.from(identitySignature, 'base64');
     let signatureAdminBuffer = Buffer.from(identityAdminSignature, 'base64');
 
-    let ret = {};
+
 
     let pin = req.body['pin'];
     if (!pin) {
@@ -663,6 +675,9 @@ router.post('/sign', function(req, res) {
 
 
    card = cardsInserted.get(card);
+   const hashAlgo = crypto.createHash('sha256');
+   hashAlgo.update(data);
+   data = hashAlgo.digest();
    unlockCard(card, pin).then(resp => {
        return obtainSignature(card, data, pin);
    }).then(signature => {
@@ -678,6 +693,11 @@ router.post('/sign', function(req, res) {
        }
        res.status(200);
        res.json(ret);
+   }).catch(e => {
+        console.log(e);
+        ret.error = e.toString();
+        res.status(400);
+        res.json(ret);
    });
 });
 

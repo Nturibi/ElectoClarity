@@ -30,8 +30,7 @@ function checkCardInserted() {
 		let cards = js['cards'];
 		for (let card in cards) {
 			if (cards.hasOwnProperty(card)) {
-				this.selectedCard = card;
-				return true;
+				return card;
 			}
 		}
 		return false;
@@ -87,7 +86,10 @@ class AdminScreen {
 		this.timeoutFunc = setTimeout(function () {
 			//TODO  PETER check if card has been inserted and update the this.cardInserted
 			checkCardInserted().then(b => {
-				this.cardInserted = b;
+				this.cardInserted = !!b;
+				if (b) {
+					this.selectedCard = b;
+				}
 			});
 			const regUser =  document.querySelector("#regUser");
 			if (!this.cardInserted){
@@ -96,11 +98,10 @@ class AdminScreen {
 				regUser.addEventListener("click", handler);
 			}
 			this.pollForCard(handler);
-		}.bind(this), 2000);
+		}.bind(this), 1000);
 
 	}
 	onSubmitUserData (event){
-		console.log("SELECTED CARD: "+this.selectedCard);
 		window.clearTimeout(this.timeoutFunc);
 		// console.log("Handler working")
 		const fName = document.querySelector("input[name = 'fname']").value;
@@ -140,8 +141,8 @@ class AdminScreen {
         };
 		var identity;
 		var identityString;
+		var obj = this;
 		var pin64 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; // Default pin is 32 bytes of 0s
-
 		fetch(endpoint + "/erasecard", fetchOptions).then(result => {
 			return fetch(endpoint+"/extractkeys", fetchOptions);
 		}).then(result => {
@@ -164,7 +165,7 @@ class AdminScreen {
 				"dd-mm-yy": `${day}-${month}-${year}`
             };
 			identityString = JSON.stringify(identity);
-			data = utoa(identityString);
+			let data = utoa(identityString);
 
 			let reqBody = {
 				"data": data,
@@ -177,14 +178,18 @@ class AdminScreen {
 		}).then(signaturesObj => {
 			return signaturesObj.json();
 		}).then(signatures => {
-			this.signatures = signatures;
-			this.identity = identity;
+			if (!signatures) {
+				console.log("WHY?");
+			}
+			obj.signatures = signatures;
+			obj.identity = identity;
+			console.log("Assigned.");
+        	obj.cardPluckedOut(obj.onEnterAdminCard);
 		}).catch(e => {
 			console.log("Error occurred creating card: "+e);
 		});
-
 			// this.pollForCard(this.onEnterAdminCard);
-			this.cardPluckedOut(this.onEnterAdminCard);
+
 		//TODO: api callss
 
 		//
@@ -194,6 +199,9 @@ class AdminScreen {
 			//TODO  PETER check if card has been removed and update this.cardOut
             checkCardInserted().then(b => {
                 this.cardOut = !b;
+                if (b) {
+                	this.selectedCard = b;
+				}
             });
 			if (this.cardOut){
 				this.pollForCard(handler);
@@ -201,7 +209,7 @@ class AdminScreen {
 			}else{
 				this.cardPluckedOut(handler);
 			}
-		}.bind(this), 2000);
+		}.bind(this), 1000);
 	}
 
 
@@ -215,8 +223,9 @@ class AdminScreen {
 		const regUsr = document.querySelector("#regUser");
 		regUsr.removeEventListener("click", this.onEnterAdminCard);
 		regUsr.textContent = "Finish Registation";
-
+		let endpoint = window.constants.hardwareAPI + window.constants.cardAPI;
 		// Assuming the admin card has been substituted in.
+		var obj = this;
 		let fetchOptions = {
             method: 'POST',
             headers: {
@@ -234,8 +243,8 @@ class AdminScreen {
 		fetch(endpoint+"/registervoter", fetchOptions).then(res => {
 			return res.json();
 		}).then(signedStuff => {
-			this.identityString = signedStuff.identityString;
-			this.identitySignature = signedStuff.signature;
+			obj.identityString = signedStuff.identityString;
+			obj.identitySignature = signedStuff.signature;
 		}).catch(e => {
 			console.log(e);
 		});
@@ -257,8 +266,8 @@ class AdminScreen {
                 'Content-Type': 'application/json'
             },
 			body: JSON.stringify({
-				"signature": this.identitySignature,
-				"identity": JSON.parse(this.identityString),
+				"signature": this.sigident.identitySignature,
+				"identity": JSON.parse(this.sigident.identityString),
 				"card": this.selectedCard,
 				"pin": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" // Still default PIN
 			}),
