@@ -7,6 +7,7 @@
     "node": "9.2.1"
   },
   "dependencies": {
+    "bitwise-xor": "0.0.0",
     "body-parser": "^1.17.1",
     "chart.js": "^2.7.1",
     "express": "^4.15.2",

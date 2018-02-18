@@ -64,6 +64,16 @@ function executeWriteToCard(card, data, slot) {
     return sendAPDU(card, cmd);
 }
 
+function fetchIdentity(card) {
+    let cmd = {
+        "cla": 0x24,
+        "ins": 0x05, // READ_DATA
+        "p1": 0x00, // IDENTITY
+        "p2": 0x11, // arbitrary
+        "le": 255
+    };
+}
+
 function verifySignature(allegedKey, allegedData, allegedSignature) {
     let pub = {
             x: allegedKey.point.x,
@@ -471,6 +481,8 @@ router.post('/submitballot', function(req, res) {
 
     voteSubmission.ballot = ballot;
     voteSubmission.pad = randomData.toString('base64');
+
+    sendAPDU()
 
     let postObject = {};
     postObject.vote = voteSubmission;
