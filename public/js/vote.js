@@ -4,7 +4,7 @@ class VotePage {
 		this.id = id;
 		this.nameOfElection = "Presidential Election";
 		this.choice = "";
-		this.cardLoaded = true;
+		this.cardLoaded = false;
 		this.allContainers = [];
 		this.gButton = null;
 		this.initVoterPage = this.initVoterPage.bind(this);
@@ -26,13 +26,23 @@ class VotePage {
 		const elem =  document.querySelector(".elec-name")
 		if (elem != null){
 			elem.textContent = this.nameOfElection
-
 		}
 		const arr = jsRes.cont.contestants;
-		document.querySelector("#votingPage").innerHTML = ""
+		document.querySelector("#votingPage").innerHTML = "";
+
 		for (let person of arr){
 			this.createContestantHolder("",person)
 		}
+		//create passwordholder
+		const hTitle = document.createElement("h3");
+		hTitle.textContent ="Enter Password";
+		const inputElem = document.createElement("input");
+		inputElem.type = "password";
+		inputElem.name = "userpin";
+		document.querySelector("#votingPage").appendChild(hTitle);
+		document.querySelector("#votingPage").appendChild(inputElem);
+		console.log("inputElem kdsbkjg");
+		console.log(inputElem);
 		//create submit button
 		const submitCont = document.createElement("div");
 		// const aTag = document.createElement("a");
@@ -42,9 +52,14 @@ class VotePage {
 		submitCont.appendChild(this.gButton);
 		document.querySelector("#votingPage").appendChild(submitCont);
 		submitCont.addEventListener("click", this.onSubmitPressed);
+
+
+
 		if (!this.cardLoaded){
-			this.pollForCard()
+			this.pollForCard();
 		}
+
+
 
 	}
 	pollForCard() {
@@ -58,11 +73,15 @@ class VotePage {
 			// this.gButton.removeEventListener("click", this.onSubmitPressed)
 			// this.gButton.addEventListener("click", this.noCardConnected)
 			fetch(inserted, {method: 'GET'}).then(reply => {
-				let thejson = reply.json();
+				return reply.json();
+			}).then(thejson => {
 				let cards = thejson['cards'];
+				console.log(cards);
 				for (let card in cards) {
+					console.log("Iterating")
 					if (cards.hasOwnProperty(card)) {
 						// Card exists
+						console.log("Found Card")
 						this.selectedCard = card;
 						this.cardLoaded = true;
 						break;
@@ -129,13 +148,15 @@ class VotePage {
 
 	async onSubmitPressed(event){
 		if(!this.cardLoaded){
-			new SnackBar(true, "Please connect your card")
-			return
+			new SnackBar(true, "Please connect your card");
+			return;
 		}
 		if (this.choice === ""){
-			new SnackBar(true, "Please Vote")
-			return
+			new SnackBar(true, "Please Vote");
+			return;
 		}
+		const password = document.querySelector("input[name='userpin']").value;
+		console.log("got the password "+ password );
 		const message = {
 			electionId: this.id,
 			choice: this.choice
@@ -143,7 +164,8 @@ class VotePage {
 		let postObject = {};
 		postObject.ballot = message;
 		postObject.card = this.selectedCard;
-		postObject.pin = "1111"; // TODO: FIX to Base64 string of 32 bytes
+		postObject.pin = sha256Base64(password); // TODO: FIX to Base64 string of 32 bytes
+		postObject.pin = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; // Testing
 
 		const fetchOptions = {
 			method: 'POST',
