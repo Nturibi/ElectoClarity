@@ -1,0 +1,66 @@
+
+		<div id="adminpage">
+
+			<form class="" >
+				<h2 class="subtitle" >Register Election</h2>
+					<h2>Name of Election</h2>
+					<input type="text" id="nameofelection" placeholder="Presidential">
+					<h2>Contestants</h2>
+					<div class="vert" id="contAdd">
+						<input type="text" name="" value="" class="contestant">
+						<input type="text" name="" value="" class="contestant">
+						<input type="text" name="" value="" class="contestant">
+						<button type="button" name="button" id="addCont">Add Contestant</button>
+					</div>
+					<h2>Public Key</h2>
+					<input type="text" id="pKey" >
+					<h2>Expiration Date</h2>
+					<div>
+							<select class="bear-dates" id="dd" ></select>
+							<select class="bear-months" id="mt"></select>
+							<select class="bear-years" id="yy"></select>
+						</div>
+					<div id="goHolder1">
+						<button class="go" >Create Election</button>
+					</div>
+
+			</form>
+
+			<form class="" >
+					<h2 class="subtitle" >Register Voter</h2>
+				<h2>First Name</h2>
+				<input type="text" name="fname">
+				<h2>Last Name</h2>
+				<input type="text" name="lname">
+				<h2>Date of Birth</h2>
+				<div>
+				<select class="bear-dates" id="db"  ></select>
+				<select class="bear-months" id="mb" ></select>
+				<select class="bear-years" id="yb" ></select>
+			</div>
+				<h2>Gender</h2>
+					<label >Female</label>
+					<input type="radio" name="gender" value="Female" checked>
+					<label for="gender">Male</label>
+					<input type="radio" name="gender" value="Male">
+
+
+				<h2>Zip Code</h2>
+				<input type="number" name="zip">
+
+				<div id="regUser">
+					<button class="go" id="regUser">Register User</button>
+				</div>
+			</form>
+			<form id="eViz" >
+				<h2 class="subtitle" >View Election Results</h2>
+				<h3>Enter the election id</h3>
+				<input type="text" name="eId">
+				<input type="submit" name="submit" value="Visualize">
+
+			</form>
+
+			<canvas id="myChart" class="chart inactive"></canvas>
+
+
+		</div>

@@ -16,15 +16,16 @@
     <script src= "https://apis.google.com/js/platform.js" async defer></script>
     <script src="js/calendar.js" type="text/javascript" defer></script>
     <script  src= "js/loginUtils.js" type="text/javascript" defer ></script>
-    <script src="js/pickTime.js" type="text/javascript" defer></script>
+    <script src="js/admin.js" type="text/javascript" defer></script>
     <script src="js/snackbar.js" type="text/javascript" defer></script>
     <script src="js/vote.js" type="text/javascript" defer></script>
     <script src="js/tripPage.js" type="text/javascript" defer> </script>
      <script  src="js/userSignUp.js" type="text/javascript" defer></script>
     <script  src="js/userLogin.js" type="text/javascript" defer></script>
+    <script src="js/chart.js/dist/Chart.js" defer></script>
+
     <script src="js/results.js" type="text/javascript" defer></script>
     <script src="js/home.js" type="text/javascript" defer></script>
-    <script type="text/javascript" src="js/angular.min.js"></script>
     <script src="js/script.js" type="text/javascript" defer></script>
 
     <title>ElectoClarity | Transparent Democratic Secure</title>
@@ -37,11 +38,11 @@
     <body ng-controller="mainController">
 
         <!-- HEADER AND NAVBAR -->
-        <header>
+        <header >
             <nav class="navbar navbar-default">
             <div class="container">
-                <div class="navbar-header">
-                   <h1> ElectroClarity</h1>
+                <div class="navbar-header" >
+                   <h1> ElectoClarity</h1>
                 </div>
                 <h6 class="ctrtext"> <em>Transparent Democratic Secure</em></h6>
 
@@ -51,6 +52,7 @@
                     <li><a href="#about"><i class="fa fa-shield"></i> About</a></li>
                     <li><a href="#contact"><i class="fa fa-comment"></i> Contact</a></li>
                 </ul> -->
+                
             </div>
             </nav>
         </header>
@@ -61,7 +63,7 @@
                 <!-- <div class="g-signin2" data-onsuccess="onSignIn"></div> -->
       
       <div ng-view></div>
-            <div class="g-signin2 inactive" id= "g1"data-onsuccess="onSignIn"></div>
+           <!--  <div class="g-signin2 inactive" id= "g1"data-onsuccess="onSignIn"></div> -->
             <!-- angular templating -->
             <!-- this is where content will be injected -->
 

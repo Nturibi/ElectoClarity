@@ -48,15 +48,19 @@ async function main() {
 main();
 async function onPostElection(req, res){
 	const message = req.body;
+	message.id = shortId.generate();
 	const resp = await electionCollection.insertOne(message)
 	const arr = message.contestants;
 	console.log("about to log")
+	let count = 0;
 	for (let item of arr){
 		const doc =  {
-			nameOfElection: message.nameOfElection,
+			electionId: message.id,
 			candidate: item,
-			votes: 0
+			votes: 0,
+			contId: count
 		};
+		count++;
 		await resultsCollection.insertOne(doc);
 	}
 	res.json({isSaved: true});
@@ -64,42 +68,84 @@ async function onPostElection(req, res){
 app.post('/postelection', jsonParser, onPostElection)
 
 async function onGetContestants(req, res){
-	console.log("Gettin contestants")
-	const nameOfElection = req.query.nameOfElection;
-	const response = await electionCollection.findOne({nameOfElection: nameOfElection});
+	// console.log("Gettin contestants")
+	const idOfElection = req.query.id;
+	const response = await electionCollection.findOne({id: idOfElection});
 	res.json({cont : response});
 }
 
 
-app.get('/getcontestants', jsonParser, onGetContestants);
+app.get('/getelection', jsonParser, onGetContestants);
+
+async function onGetElections(req, res){
+	const cursor = await electionCollection.find();
+	const list = await cursor.toArray();
+	res.json({elections: list})
+}
+app.get('/getelections', jsonParser, onGetElections);
+
+async function onPostVote(req, res){
+	const message = req.body;
+	console.log("The elec id ("+ message.electionId+")")
+	console.log("The choice S("+message.choice+")END")
+	const query = {
+		electionId: message.electionId,
+		candidate: message.choice
+	};
+	console.log(query)
+	const response = await resultsCollection.findOne(query);
+	console.log(response)
+	const votes  = response.votes;
+	response.votes = votes + 1 ;
+	console.log("The votes are: "+ response.votes)
+
+	await resultsCollection.update(query, response);
+	res.json({voted : true})
+}
+
+app.post('/postvote', jsonParser, onPostVote)
+
+async function onGetElectionData(req, res){
+	const electionId = req.query.electId;
+	const query ={
+		electionId: electionId
+	}
+	const cursor = await  resultsCollection.find(query);
+	const arr = await cursor.toArray();
+	res.json({cont: arr})
+}
+app.get('/getElectionData', jsonParser, onGetElectionData);
+
+
 
 async function onGetIfUser(req, res){
 	const queryParams = req.query;
 	const email = queryParams.email;
 	const query = {email: email};
 	 // await profilesCollection.deleteMany(query);
-	const response = await profilesCollection.findOne(query);
-	let isUser = false;
-	if (response != null) isUser = true;
-	res.json({isUser: isUser});
-}
-app.get('/getifuser', jsonParser, onGetIfUser);
-
-async function onSaveProfile(req, res){
-	const message =  req.body;
-	let isSaved = false;
-	const response = await profilesCollection.findOne({email : message.email});
-	if (response != null){
-		isSaved = true;
-	}else{
-		await profilesCollection.insertOne(message);
+	 const response = await profilesCollection.findOne(query);
+	 let isUser = false;
+	 if (response != null) isUser = true;
+	 res.json({isUser: isUser});
 	}
-	res.json({isSaved: isSaved});
-}
-app.post('/adduser', jsonParser, onSaveProfile);
 
-function getTripId(){
-	let id = shortId.generate();
+	app.get('/getifuser', jsonParser, onGetIfUser);
+
+	async function onSaveProfile(req, res){
+		const message =  req.body;
+		let isSaved = false;
+		const response = await profilesCollection.findOne({email : message.email});
+		if (response != null){
+			isSaved = true;
+		}else{
+			await profilesCollection.insertOne(message);
+		}
+		res.json({isSaved: isSaved});
+	}
+	app.post('/adduser', jsonParser, onSaveProfile);
+
+	function getTripId(){
+		let id = shortId.generate();
 	// console.log("The id is: "+id);
 	return id;
 }
@@ -227,8 +273,8 @@ async function onUpdateTripData(req, res){
 	response.isFull = body.isFull;
 	response.ppl = body.ppl;
 	//optimization here, upsert doesn't work coz of double and single quotes diff
-     await tripCollection.update({id:body.id}, response, params);
-     const response2 = await tripCollection.findOne({id: body.id});
+	await tripCollection.update({id:body.id}, response, params);
+	const response2 = await tripCollection.findOne({id: body.id});
 
 	if (response2 != null){
 		console.log("The email to get the profile is: "+body.email);

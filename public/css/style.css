@@ -268,3 +268,37 @@ input, button{
 .select{
   background-color:  #98e698;
 }
+#suc{
+  margin-right: auto;
+  margin-left: auto;
+}
+.elect{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 10vh;
+  font-size: 2em;
+  background-color: #0074D9;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+.elect:hover{
+  background-color: #7FDBFF;
+}
+.hp{
+  margin: 20px;
+}
+#hd{
+  position: fixed;
+}
+.elec-name{
+  background-color: #7FDBFF;
+  font-size: 3em;
+  width: 100%;
+  text-align: center;
+}
+.chart{
+  width: 50vw;
+  height: 30vh;
+
+}
