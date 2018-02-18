@@ -58,20 +58,48 @@ function executeWriteToCard(card, data, slot) {
         'cla': 0x24, // For the card
         'ins': 0x01, // DATA_WRITE
         'p1': slot, // choose slot
-        'p2': 0x11, // arbitrary
+        'p2': 0x00, // Write offset
         'data': data
     };
     return sendAPDU(card, cmd);
 }
 
-function fetchIdentity(card) {
-    let cmd = {
+function unlockCard(card, pin) {
+    let unlock = {
         "cla": 0x24,
-        "ins": 0x05, // READ_DATA
-        "p1": 0x00, // IDENTITY
-        "p2": 0x11, // arbitrary
-        "le": 255
+        "ins": 0x02, // UNLOCK
+        "p1": 0x11, // Arbitrary
+        "p2": 0x11, // Arbitrary
     };
+
+    return sendAPDU(card, unlock);
+}
+
+function fetchIdentity(card, pin) {
+    return unlockCard(card, pin).then(res => {
+        let cmd = {
+            "cla": 0x24,
+            "ins": 0x05, // READ_DATA
+            "p1": 0x00, // IDENTITY
+            "p2": 0x11, // arbitrary
+            "le": 16384, // Large identity
+        };
+        let cmd2 = {
+            "cla": 0x24,
+            "ins": 0x05, // READ_DATA
+            "p1": 0x00, // CERTIFICATE
+            "p2": 0x11, // arbitrary
+            "le": 2048, // Large identity
+        };
+        return Promise.all([sendAPDU(card, cmd).then(data = > {
+            let b = data.buffer;
+            return b.slice(0, b.length - 2);
+        }),
+        sendAPDU(card, cm2).then(data = > {
+            let b = data.buffer;
+            return b.slice(0, b.length - 2);
+        })]);
+    });
 }
 
 function verifySignature(allegedKey, allegedData, allegedSignature) {
@@ -366,7 +394,7 @@ router.post('/registervoter', function(req, res) {
 
     let pin = req.body['pin'];
     if (!pin) {
-        res.stauts(400);
+        res.status(400);
         ret.error = "No PIN provided.";
         res.end(JSON.stringify(ret));
         return;
@@ -455,6 +483,7 @@ router.post('/submitballot', function(req, res) {
     }
 
     let card = req.body['card'];
+    let pin = req.body['pin'];
     if (!card) {
         res.status(400);
         ret.error = 'Missing card.';
@@ -467,6 +496,13 @@ router.post('/submitballot', function(req, res) {
         res.end(JSON.stringify(ret));
         return;
     }
+    if (!pin) {
+        res.status(400);
+        ret.error = 'No PIN provided.';
+        res.end(JSON.stringify(ret));
+        return;
+    }
+    pin = Buffer.from(pin, 'base64');
     card = cardsInserted.get(card);
 
     let ballotString = JSON.stringify(ballot);
@@ -477,16 +513,18 @@ router.post('/submitballot', function(req, res) {
 
     let voteSubmitURI = constants.authorityEndpoint + constants.voteSubmitEndpoint;
 
-    let voteSubmission = {};
+    var voteSubmission = {};
 
     voteSubmission.ballot = ballot;
     voteSubmission.pad = randomData.toString('base64');
 
-    sendAPDU()
-
-    let postObject = {};
+    var postObject = {};
     postObject.vote = voteSubmission;
-    obtainSignature(card, ballotBuffer, pin).then(signature => {
+    fetchIdentity(card, pin).then(identityList => {
+        voteSubmission.identity = JSON.parse(identityList[0].toString('utf8'));
+        voteSubmission.signature = identityList[1].toString('base64');
+        return obtainSignature(card, ballotBuffer, pin);
+    }).then(signature => {
         postObject.signature = signature.toString('base64');
         return postObject;
     }).then(theRequest => {

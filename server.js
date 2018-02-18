@@ -114,6 +114,7 @@ async function onPostVote(req, res){
 	const padBuffer = Buffer.from(pad, 'base64');
 	let buff = xor(messageBuffer, padBuffer);
 	
+	
 	res.json({voted: true, ballotPadded: buff.toString('base64'), signature: secureRandom.randomBuffer(32).toString('base64')});
 }
 

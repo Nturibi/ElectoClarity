@@ -154,18 +154,26 @@ class VotePage {
         }
         const message = {
             electionId: this.id,
-            choice: this.choice
+            choice: this.choice,
         };
+		
+		let postObject = {};
+		postObject.ballot = message;
+		postObject.card = this.selectedCard;
+		postObject.pin = "1111"; // TODO: FIX to Base64 string of 32 bytes
+		
         const fetchOptions = {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(message)
+            body: JSON.stringify(postObject)
         };
+		let endpoint = window.constants.hardwareAPI + window.constants.cardAPI + "/submitballot");
         const resp = await
-        fetch('/postvote', fetchOptions);
+        fetch(endpoint, fetchOptions);
+		
         const jsRes = await
         resp.json();
         console.log("After voting");
