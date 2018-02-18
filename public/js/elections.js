@@ -1,16 +1,12 @@
 ////console.log("starting up!!
 class ElectionScreen {
-
 	constructor(id){
 		console.log("id is : "+id);
 		this.initHomePage();
-		// this.initHomePage();
-		// this.initRegister = this.initRegister.bind(this);
 	}
 	initHomePage(){
-
 		dates('option');
-    	months1('option');
+    months1('option');
 		years('option', 1920, 2018);
 		const yearHolders = document.querySelectorAll(".bear-years");
 		for (let elem of yearHolders){
@@ -23,6 +19,7 @@ class ElectionScreen {
 			console.log(button);
 			elem.insertBefore(newElem, button);
 		})
+
 		const goButton = document.querySelector("#goHolder1");
 		if (goButton != null){
 			goButton.addEventListener('click', this.onSubmitForm);
@@ -30,9 +27,20 @@ class ElectionScreen {
 
 		const regUser =  document.querySelector("#regUser");
 		regUser.addEventListener("click", this.onSubmitUserData);
+		this.pollForCard();
 
-		
 	}
+	pollForCard(handler){
+		setTimeout(function () {
+			//TODO  PETER check if card has been inserted and update the this.cardInserted
+			const regUser =  document.querySelector("#regUser");
+			if (!this.cardInserted){
+				regUser.removeEventListener("click", handler);
+				this.pollForCard();
+			}else {
+				regUser.addEventListener("click", handler);
+			}
+		}.bind(this), 2000);
 	onSubmitUserData (event){
 		const fName = document.querySelector("input[name = 'fname']").value;
 		const lName = document.querySelector("input[name = 'lname']").value;
@@ -68,7 +76,7 @@ class ElectionScreen {
 			if(elem.value !== ""){
 				allContestants.push(elem.value);
 			}
-			
+
 		}
 		const publicKey = document.querySelector("#pKey").value;
 		const nameOfElection = document.querySelector("#nameofelection").value;
@@ -99,6 +107,5 @@ class ElectionScreen {
 			document.querySelector("#nameofelection").value = "";
 			document.querySelector("#pKey").value = "";
         }
-
 	}
 }

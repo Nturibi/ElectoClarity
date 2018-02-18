@@ -1,16 +1,19 @@
-////console.log("starting 
+////console.log("starting
 
 class AdminScreen {
 	constructor(){
 		console.log("Admin screen starting");
+		this.pollForCard = this.pollForCard.bind(this);
 		this.initHomePage = this.initHomePage.bind(this);
 		this.onSubmitForm = this.onSubmitForm.bind(this);
 		this.onSubmitUserData = this.onSubmitUserData.bind(this);
 		this.onEnterAdminCard = this.onEnterAdminCard.bind(this)
 		this.onClickViz = this.onClickViz.bind(this);
-		this.choc = "test";
-		
-	
+		this.cardPluckedOut = this.cardPluckedOut.bind(this);
+		this.cardInserted = true;
+		this.timeoutFunc;
+		this.crdRemoveTm;
+		this.cardOut = false;
 		// this.initChart();
 		document.querySelector("#myChart").style.display = "none"
 		document.querySelector("#eViz").addEventListener("click", this.onClickViz)
@@ -38,12 +41,27 @@ class AdminScreen {
 		if (goButton != null){
 			goButton.addEventListener('click', this.onSubmitForm);
 		}
-		const regUser =  document.querySelector("#regUser")
-		regUser.addEventListener("click", this.onSubmitUserData)
+		// const regUser =  document.querySelector("#regUser")
+		// regUser.addEventListener("click", )
+		this.pollForCard(this.onSubmitUserData)
+
+	}
+	pollForCard(handler){
+		this.timeoutFunc = setTimeout(function () {
+			//TODO  PETER check if card has been inserted and update the this.cardInserted
+			const regUser =  document.querySelector("#regUser");
+			if (!this.cardInserted){
+				regUser.removeEventListener("click", handler);
+			}else {
+				regUser.addEventListener("click", handler);
+			}
+			this.pollForCard(handler);
+		}.bind(this), 2000);
 
 	}
 	onSubmitUserData (event){
-		console.log("Handler working")
+		window.clearTimeout(this.timeoutFunc);
+		// console.log("Handler working")
 		const fName = document.querySelector("input[name = 'fname']").value;
 		const lName = document.querySelector("input[name = 'lname']").value;
 		const day = document.querySelector("#db").value
@@ -52,10 +70,6 @@ class AdminScreen {
 		const gender = document.querySelector("input[name ='gender']:checked").value
 		const zip = document.querySelector("input[name ='zip']").value
 		let dat = new Date(year+"-"+month+"-"+day);
-		console.log("The date is: "+dat)
-		console.log("Executing "+this.choc)
-
-
 
 		document.querySelector("input[name = 'fname']").disabled  = true;
 		document.querySelector("input[name = 'lname']").disabled  = true;
@@ -66,30 +80,55 @@ class AdminScreen {
 		document.querySelector("#yb").disabled = true;
 		document.querySelector("input[name ='password']").disabled  = true;
 
+
 		const regUsr = document.querySelector("#regUser");
-		// const new_element = regUsr.cloneNode(true);
-  		// regUsr.parentNode.replaceChild(new_element, regUsr);
   		regUsr.removeEventListener("click", this.onSubmitUserData);
   		document.querySelector("#adminP").classList.remove("inactive");
-  		regUsr.addEventListener("click", this.onEnterAdminCard);
+  		// regUsr.addEventListener("click", this.onEnterAdminCard);
 
 
-
+			// this.pollForCard(this.onEnterAdminCard);
+			this.cardPluckedOut(this.onEnterAdminCard);
 		//TODO: api callss
-		// 
+
+		//
 	}
+	cardPluckedOut(handler){
+		this.crdRemoveTm = setTimeout(function () {
+			//TODO  PETER check if card has been removed and update this.cardOut
+			if (this.cardOut){
+				this.pollForCard(handler);
+				window.clearTimeout(this.crdRemoveTm);
+			}else{
+				this.cardPluckedOut(handler);
+			}
+		}.bind(this), 2000);
+	}
+
+
+
+
 	onEnterAdminCard(){
-		console.log("Admin card entered")
+		window.clearTimeout(this.timeoutFunc);
+		//TODO PETER second insertion
 		document.querySelector("#adminP").classList.add("inactive");
 		document.querySelector("#userP").classList.remove("inactive");
 		const regUsr = document.querySelector("#regUser");
 		regUsr.removeEventListener("click", this.onEnterAdminCard);
-		regUsr.addEventListener("click", this.lastStep);
 		regUsr.textContent = "Finish Registation";
+
+		this.cardPluckedOut(this.lastStep);
+		// this.pollForCard(this.lastStep);
+		// regUsr.addEventListener("click", );
+
 	}
 	lastStep(){
-		//PETER
-		console.log("Client card entered")
+		const regUsr = document.querySelector("#regUser");
+		regUsr.textContent = "Finish Registation";
+		//TODO PETER last insertion
+		console.log("The last step");
+		document.querySelector("#userP").classList.add("inactive");
+
 		new SnackBar(true, "Saved User!");
 
 	}
@@ -115,7 +154,7 @@ class AdminScreen {
 			if(elem.value !== ""){
 				allContestants.push(elem.value)
 			}
-			
+
 		}
 		const publicKey = document.querySelector("#pKey").value
 		const nameOfElection = document.querySelector("#nameofelection").value
@@ -156,7 +195,7 @@ class AdminScreen {
 				document.querySelector("#myChart").style.display= "flex"
 				this.drawChart(jsRes)
 			}
-			
+
 		}
 	}
 	drawChart(jsRes){
@@ -177,7 +216,7 @@ class AdminScreen {
 		for (let item of jsRes.cont){
 			votes.push(item.votes)
 		}
-		
+
 
 
 		let ctx = document.getElementById("myChart").getContext('2d');

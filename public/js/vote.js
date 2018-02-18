@@ -31,8 +31,7 @@ class VotePage {
 		const arr = jsRes.cont.contestants;
 		document.querySelector("#votingPage").innerHTML = ""
 		for (let person of arr){
-			this.createContestantHolder("", person)
-
+			this.createContestantHolder("",person)
 		}
 		//create submit button
 		const submitCont = document.createElement("div");
@@ -40,13 +39,9 @@ class VotePage {
 		this.gButton = document.createElement("button");
 		this.gButton.classList.add("go");
 		this.gButton.textContent = "Submit Vote";
-
-
-
 		submitCont.appendChild(this.gButton);
-		document.querySelector("#votingPage").appendChild(submitCont)
-		submitCont.addEventListener("click", this.onSubmitPressed)
-
+		document.querySelector("#votingPage").appendChild(submitCont);
+		submitCont.addEventListener("click", this.onSubmitPressed);
 		if (!this.cardLoaded){
 			this.pollForCard()
 		}
@@ -90,7 +85,6 @@ class VotePage {
 	noCardConnected() {
 		new SnackBar(true, "Please insert your voting card")
 	}
-
 
 	createContestantHolder(imagePath, name){
 		const container = document.createElement("div")
@@ -159,7 +153,7 @@ class VotePage {
 			},
 			body: JSON.stringify(postObject)
 		};
-		let endpoint = window.constants.hardwareAPI + window.constants.cardAPI + "/submitballot");
+		let endpoint = window.constants.hardwareAPI + window.constants.cardAPI + "/submitballot";
 		const resp = await
 		fetch(endpoint, fetchOptions);
 		const jsRes = await resp.json();
