@@ -2,6 +2,8 @@ const bodyParser = require('body-parser');
 const express = require('express');
 let shortId = require('shortid');
 const nodemailer = require('nodemailer');
+const xor = require('bitwise-xor');
+const secureRandom = require('secure-random');
 
 // swivar
 
@@ -85,22 +87,35 @@ async function onGetElections(req, res){
 app.get('/getelections', jsonParser, onGetElections);
 
 async function onPostVote(req, res){
-	const message = req.body;
-	console.log("The elec id ("+ message.electionId+")")
-	console.log("The choice S("+message.choice+")END")
+	const message = req.body.vote.ballot;
+	const signature = req.body.signature;
+	const pad = req.body.vote.pad;
+
+	const messageString = JSON.stringify(message);
+	// Verify signature later...
+
+
+	console.log("The elec id ("+ message.electionId+")");
+	console.log("The choice S("+message.choice+")END");
 	const query = {
 		electionId: message.electionId,
 		candidate: message.choice
 	};
-	console.log(query)
+	console.log(query);
 	const response = await resultsCollection.findOne(query);
-	console.log(response)
+	console.log(response);
 	const votes  = response.votes;
-	response.votes = votes + 1 ;
-	console.log("The votes are: "+ response.votes)
+	response.votes = votes + 1;
+	console.log("The votes are: "+ response.votes);
 
 	await resultsCollection.update(query, response);
-	res.json({voted : true})
+
+	const messageBuffer = Buffer.from(messageString, 'utf8');
+	const padBuffer = Buffer.from(pad, 'base64');
+	let buff = xor(messageBuffer, padBuffer);
+
+
+	res.json({voted: true, ballotPadded: buff.toString('base64'), signature: secureRandom.randomBuffer(32).toString('base64')});
 }
 
 app.post('/postvote', jsonParser, onPostVote)
@@ -123,6 +138,8 @@ app.get('/getElectionData', jsonParser, onGetElectionData);
 function sendEmail(receipent,subject, message){
 	const transporter = nodemailer.createTransport({
 		service: 'Gmail',
+		user: "",
+		pass: "",
 		// secure:true,
 	});
 	if (transporter == null || transporter === null){
@@ -144,4 +161,3 @@ function sendEmail(receipent,subject, message){
 		}
 	});
 }
-
