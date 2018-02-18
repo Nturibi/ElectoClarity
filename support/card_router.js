@@ -326,10 +326,16 @@ router.get('/inserted', function (req, res) {
     res.json(resp);
 });
 // Call this endpoint to get & "verify" the candidate list before voting.
-router.get('/requestballot', function(req, res) {
+router.post('/requestballot', function(req, res) {
     let endpoint = constants.authorityEndpoint + constants.voteInformationEndpoint;
     let ret = {};
-    rp(endpoint).then(theballot => {
+    let options = {
+        method: 'POST',
+        uri: endpoint,
+        body: req.body['extra_data'],
+        json: true,
+    };
+    rp(options).then(theballot => {
         if (!theballot.authorityKey || !theballot.ballot || !theballot.authoritySignature) {
             res.status(400);
             ret.error = "Missing information in returned ballot.";
@@ -551,6 +557,8 @@ router.post('/submitballot', function(req, res) {
     voteSubmission.pad = randomData.toString('base64');
 
     var postObject = {};
+    let extraData = req.body['extra_data'] || {};
+    postObject = Object.assign(postObject, extraData);
     postObject.vote = voteSubmission;
     fetchIdentity(card, pin).then(identityList => {
         voteSubmission.identity = JSON.parse(identityList[0].toString('utf8'));

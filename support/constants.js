@@ -1,5 +1,5 @@
 module.exports = {
-	"authorityEndpoint": "https://google.com/?q=How+to+configure+stuff",
+	"authorityEndpoint": "https://localhost:3000",
 	"voteSubmitEndpoint": "/postvote",
 	"voteInformationEndpoint": "/voteInfo",
 	"adminCardPIN": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="

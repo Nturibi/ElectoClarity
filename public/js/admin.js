@@ -100,6 +100,7 @@ class AdminScreen {
 
 	}
 	onSubmitUserData (event){
+		console.log("SELECTED CARD: "+this.selectedCard);
 		window.clearTimeout(this.timeoutFunc);
 		// console.log("Handler working")
 		const fName = document.querySelector("input[name = 'fname']").value;
@@ -128,18 +129,19 @@ class AdminScreen {
 
 		const endpoint = window.constants.hardwareAPI + window.constants.cardAPI;
 		const extrendpoint = endpoint + "/extractKeys";
+        const card = this.selectedCard; // Implement this somewhere.
         const fetchOptions = {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({"card": card})
+            body: JSON.stringify({"card": card,})
         };
 		var identity;
 		var identityString;
 		var pin64 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; // Default pin is 32 bytes of 0s
-        const card = this.selectedCard; // Implement this somewhere.
+
 		fetch(endpoint + "/erasecard", fetchOptions).then(result => {
 			return fetch(endpoint+"/extractkeys", fetchOptions);
 		}).then(result => {
@@ -177,6 +179,8 @@ class AdminScreen {
 		}).then(signatures => {
 			this.signatures = signatures;
 			this.identity = identity;
+		}).catch(e => {
+			console.log("Error occurred creating card: "+e);
 		});
 
 			// this.pollForCard(this.onEnterAdminCard);
@@ -224,8 +228,8 @@ class AdminScreen {
 				"userSignature": this.signatures.signature,
 				"adminSignature": this.signatures.adminSignature,
 				"pin": window.constants.adminCardPIN, // In reality, this should be entered by the administrator
-				"card": this.selectedCard;
-			});
+				"card": this.selectedCard,
+			}),
 		};
 		fetch(endpoint+"/registervoter", fetchOptions).then(res => {
 			return res.json();
@@ -257,7 +261,7 @@ class AdminScreen {
 				"identity": JSON.parse(this.identityString),
 				"card": this.selectedCard,
 				"pin": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" // Still default PIN
-			});
+			}),
 		};
 		fetch(endpoint+"/populatecard", fetchOptions).then(x => {
 			fetchOptions.body = JSON.stringify(resetPINObject);
