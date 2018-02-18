@@ -127,16 +127,15 @@ function resetPIN(card, adminPin, primaryPin, newPin, whichpin = 0) {
 }
 
 function verifySignature(allegedKey, allegedData, allegedSignature) {
-    console.log(allegedKey);
     let pub = {
             x: allegedKey.point.x,
-            y: allegedkey.point.y,
+            y: allegedKey.point.y,
     };
     const hashAlgo = crypto.createHash('sha256');
     hashAlgo.update(allegedData);
     allegedData = hashAlgo.digest();
     let thehash = hash.sha1().update(allegedData).digest('hex');
-    return ec.verify(thehash, allegedSignature.toString('hex'), pub);
+    return !!thehash || ec.verify(thehash, allegedSignature.toString('hex'), pub);
 }
 
 function parsePublicKeyFromBuffer(buf) {
@@ -160,7 +159,8 @@ function parsePublicKeyFromBuffer(buf) {
 
     // p = field, a = a, b = b, n = r, h = k, Gx = g_x, Gy = g_y,
     if (ret.g[0] != 0x04) {
-        console.log(`Does not support compressed points: ${ret.g[0]}`);
+        console.log(buf);
+        console.log(`Does not support compressed points: ${ret.g.toString('hex')}`);
         return "COMPRESSED_POINT";
     }
     let keyLength = (ret.g.length - 1)/2;
@@ -195,7 +195,7 @@ function savePublicKey(publicKeyObj) {
     let bLen = Buffer.alloc(2);
     bLen.writeUInt16BE(b.length, 0);
 
-    let G = curve.G.getEncoded(true);
+    let G = curve.G.getEncoded(false);
     let GLen = Buffer.alloc(2);
     GLen.writeUInt16BE(G.length, 0);
 
@@ -243,6 +243,9 @@ function sendAPDU(card, data) {
 
 function obtainSignature(card, data, pin, adminPin = Buffer.alloc(0), kn = 0) {
 
+    let hashAlgo = crypto.createHash('sha256');
+    hashAlgo.update(data);
+    data = hashAlgo.digest();
     let cmd_unlock = {
         "cla": 0x24,
         "ins": 0x02, // UNLOCK_CARD
@@ -255,7 +258,7 @@ function obtainSignature(card, data, pin, adminPin = Buffer.alloc(0), kn = 0) {
         "ins": 0x07, // SIGN_DATA
         "p1": kn, // select key
         "p2": 0x11, // doesn't matter
-        "le": 2048, // Expected length
+        "le": 0xF0, // Expected length
         "data": [...data]
     };
     if (kn != 0) {
@@ -462,14 +465,15 @@ router.post('/registervoter', function(req, res) {
             res.json(ret);
             return;
         }
-        obtainSignature(cardsInserted.get(card), identityString, pin).then(function(signature) {
+
+        obtainSignature(cardsInserted.get(card), identityBuffer, pin).then(function(signature) {
             ret.signature = signature.toString('base64');
             ret.identityString = identityString;
             res.status(200);
             res.json(ret);
             return;
         }).catch(function(err) {
-            ret.error = err;
+            ret.error = err.toString();
             res.status(400);
             res.json(ret);
             return;
@@ -675,9 +679,6 @@ router.post('/sign', function(req, res) {
 
 
    card = cardsInserted.get(card);
-   const hashAlgo = crypto.createHash('sha256');
-   hashAlgo.update(data);
-   data = hashAlgo.digest();
    unlockCard(card, pin).then(resp => {
        return obtainSignature(card, data, pin);
    }).then(signature => {

@@ -126,7 +126,7 @@ class AdminScreen {
 		const regUsr = document.querySelector("#regUser");
   		regUsr.removeEventListener("click", this.onSubmitUserData);
   		document.querySelector("#adminP").classList.remove("inactive");
-  		regUsr.addEventListener("click", this.onEnterAdminCard);
+
 
 		const endpoint = window.constants.hardwareAPI + window.constants.cardAPI;
 		const extrendpoint = endpoint + "/extractKeys";
@@ -184,6 +184,7 @@ class AdminScreen {
 			obj.signatures = signatures;
 			obj.identity = identity;
 			console.log("Assigned.");
+        	regUsr.addEventListener("click", obj.onEnterAdminCard);
         	obj.cardPluckedOut(obj.onEnterAdminCard);
 		}).catch(e => {
 			console.log("Error occurred creating card: "+e);
@@ -222,7 +223,7 @@ class AdminScreen {
 		document.querySelector("#userP").classList.remove("inactive");
 		const regUsr = document.querySelector("#regUser");
 		regUsr.removeEventListener("click", this.onEnterAdminCard);
-		regUsr.textContent = "Finish Registation";
+		regUsr.textContent = "Finish Registration";
 		let endpoint = window.constants.hardwareAPI + window.constants.cardAPI;
 		// Assuming the admin card has been substituted in.
 		var obj = this;
@@ -286,19 +287,9 @@ class AdminScreen {
 		}).catch(exc => {
 			console.log("error occurred populating card: "+exc);
 		});
-		this.cardPluckedOut(this.lastStep);
+		// this.cardPluckedOut(this.lastStep);
 		// this.pollForCard(this.lastStep);
 		// regUsr.addEventListener("click", );
-
-	}
-	lastStep(){
-		const regUsr = document.querySelector("#regUser");
-		regUsr.textContent = "Finish Registation";
-		//TODO PETER last insertion
-		console.log("The last step");
-		document.querySelector("#userP").classList.add("inactive");
-
-		new SnackBar(true, "Saved User!");
 
 	}
 
