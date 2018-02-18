@@ -16,9 +16,6 @@ class VotePage {
 
 	}
 	async initVoterPage(){
-		// console.log("got the contestants:")
-		 ////programtically create a  thread
-		 //get contestants
 		 const response = await fetch('/getelection?id='+this.id, {method: 'GET'});
 		 const jsRes = await response.json();
 		 console.log("jsres ")

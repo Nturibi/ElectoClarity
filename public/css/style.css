@@ -220,6 +220,7 @@ input{
 .subtitle{
   background-color: #67BCDB;
   text-align: center;
+  width: 100%;
 }
 .center-items, #votingPage{
   display: flex;
@@ -300,5 +301,35 @@ input, button{
 .chart{
   width: 50vw;
   height: 30vh;
+}
+.ctr1{
+  border: 6px solid #305A72;
+  border-radius: 10px;
+  margin-right: auto;
+  margin-left: auto;
+  padding: 20px;
+  margin-bottom: 20px;
 
 }
+.tt{
+ display: inline-block; 
+ margin-right: auto;
+ margin-left: auto;
+ 
+}
+#addCont {
+  max-width: 20vw; 
+}
+.in{
+  display: inline-block;
+}
+.left{
+  display: flex;
+  justify-content: flex-start;
+  flex-flow: row; 
+
+}
+.red{
+  max-width: 2vw;
+}
+

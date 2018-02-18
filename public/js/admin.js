@@ -2,15 +2,25 @@
 
 class AdminScreen {
 	constructor(){
+		console.log("Admin screen starting");
+		this.initHomePage = this.initHomePage.bind(this);
 		this.onSubmitForm = this.onSubmitForm.bind(this);
-		this.initHomePage();
-		this.onClickViz = this.onClickViz.bind(this)
+		this.onSubmitUserData = this.onSubmitUserData.bind(this);
+		this.onEnterAdminCard = this.onEnterAdminCard.bind(this)
+		this.onClickViz = this.onClickViz.bind(this);
+		this.choc = "test";
+		
+	
 		// this.initChart();
 		document.querySelector("#myChart").style.display = "none"
 		document.querySelector("#eViz").addEventListener("click", this.onClickViz)
+		console.log("end cons var "+this.choc)
+		this.initHomePage();
+
 	}
 
 	initHomePage(){
+		console.log("test var "+this.choc)
 		dates('option');
 		months1('option');
 		years('option', 1920, 2018)
@@ -31,9 +41,9 @@ class AdminScreen {
 		const regUser =  document.querySelector("#regUser")
 		regUser.addEventListener("click", this.onSubmitUserData)
 
-
 	}
 	onSubmitUserData (event){
+		console.log("Handler working")
 		const fName = document.querySelector("input[name = 'fname']").value;
 		const lName = document.querySelector("input[name = 'lname']").value;
 		const day = document.querySelector("#db").value
@@ -42,8 +52,46 @@ class AdminScreen {
 		const gender = document.querySelector("input[name ='gender']:checked").value
 		const zip = document.querySelector("input[name ='zip']").value
 		let dat = new Date(year+"-"+month+"-"+day);
+		console.log("The date is: "+dat)
+		console.log("Executing "+this.choc)
+
+
+
+		document.querySelector("input[name = 'fname']").disabled  = true;
+		document.querySelector("input[name = 'lname']").disabled  = true;
+		document.querySelector("input[name ='gender']").disabled  = true;
+		document.querySelector("input[name ='zip']").disabled  = true;
+		document.querySelector("#db").disabled = true;
+		document.querySelector("#mb").disabled = true;
+		document.querySelector("#yb").disabled = true;
+		document.querySelector("input[name ='password']").disabled  = true;
+
+		const regUsr = document.querySelector("#regUser");
+		// const new_element = regUsr.cloneNode(true);
+  		// regUsr.parentNode.replaceChild(new_element, regUsr);
+  		regUsr.removeEventListener("click", this.onSubmitUserData);
+  		document.querySelector("#adminP").classList.remove("inactive");
+  		regUsr.addEventListener("click", this.onEnterAdminCard);
+
+
+
 		//TODO: api callss
+		// 
+	}
+	onEnterAdminCard(){
+		console.log("Admin card entered")
+		document.querySelector("#adminP").classList.add("inactive");
+		document.querySelector("#userP").classList.remove("inactive");
+		const regUsr = document.querySelector("#regUser");
+		regUsr.removeEventListener("click", this.onEnterAdminCard);
+		regUsr.addEventListener("click", this.lastStep);
+		regUsr.textContent = "Finish Registation";
+	}
+	lastStep(){
+		//PETER
+		console.log("Client card entered")
 		new SnackBar(true, "Saved User!");
+
 	}
 
 
@@ -98,26 +146,22 @@ class AdminScreen {
 			document.querySelector("#nameofelection").value = "";
 			document.querySelector("#pKey").value = "";
 		}
-
-
-
-
 	}
 	async onClickViz(){
 		const id = document.querySelector("input[name = 'eId']").value;
 		if (id != null){
 			const response = await fetch('/getElectionData?electId='+id, {method: 'GET'});
-		    const jsRes = await response.json();
-		    if (jsRes!= null){
-		     document.querySelector("#myChart").style.display= "flex"
-		    this.drawChart(jsRes)
-		    }
+			const jsRes = await response.json();
+			if (jsRes!= null){
+				document.querySelector("#myChart").style.display= "flex"
+				this.drawChart(jsRes)
+			}
 			
 		}
 	}
-	 drawChart(jsRes){
-	 	console.log("jsRes is ")
-	 	console.log(jsRes)
+	drawChart(jsRes){
+		console.log("jsRes is ")
+		console.log(jsRes)
 		// document.querySelector("#myChart").style.display = "none"
 		// document.querySelector("#eViz").addEventListener("click", this.onClickViz)
 		const id = 'ryzaIUIvG'
